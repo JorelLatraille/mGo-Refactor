@@ -4,7 +4,7 @@
 """
 import mgo_maya; reload(mgo_maya)
 import mgo_convert; reload(mgo_convert)
-import mgo_main; reload(mgo_main)
+import mgo_utils; reload(mgo_utils)
 import mgo_app_ui; reload(mgo_app_ui); mgo_app_ui.run()
 """
 
