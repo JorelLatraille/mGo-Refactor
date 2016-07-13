@@ -138,8 +138,6 @@ class MgoMaterialiser(object):
         else:
             self.shader = self.create_shader()
 
-        print "return shader!!!"
-
         self.set_shader_attributes()
 
         if previous_shader:
@@ -205,56 +203,6 @@ class MgoMaterialiser(object):
             parameters_list.append(p_list)
 
         print parameters_list
-
-        """
-        configShaderData = (
-        shaderType, curShaderStr, aDiffuseColor, aDiffuseAmount, aOpacity_Map, aDiffuseRoughness,
-        aSelf_Illumination, aBRDF_Model, aReflectionColor, aReflectionAmount, aLock_Highlight_Refle_gloss,
-        aHighlightGlossiness, aReflectionGlossiness, aFresnel_On, aFresnel_useIOR, aReflection_IOR, aggxTailFalloff,
-        aAnisotropy, aRotation, aRefractionColor, aRefractionAmount, aRefractionGlossiness, aIOR, aFog_Color,
-        aFog_multiplier, aFog_bias, aSSS_On, aTranslucency_Color, aFwd_back_coeff, aScatt_coeff)
-        """
-
-        # add the .pre format suffix if user hasn't added it
-
-        if ".pre" in output_path:
-            output_path.replace(".pre", "", 1)
-            path = output_path
-        else:
-            path = output_path + ".pre"
-
-        print output_path
-        """"
-        f = open(path, 'w')
-
-        cPickle.dump(configShaderData, f)
-        f.close()
-
-        # update the Preset List
-        update_subDir()
-
-        # Preset Exported messagse
-        msg = "--- Preset Saved ---"
-        print msg
-
-        presets_combo.addItem(msg)
-        presets_combo.setCurrentIndex(presets_combo.findText(msg))
-
-        # reset Preview Checkbox
-
-        prevImportCbox.setCheckState(QtCore.Qt.Unchecked)
-
-        # <------------------------ Log last path used ------------------------>
-        # Use this to make materialiser always remember the last shaderType and library folder selected by the user.
-        configData = (path)
-        pathfile = mariPath + "/mGo/Presets/Materialiser_log.txt"
-        f = open(pathfile, 'w')
-        cPickle.dump(configData, f)
-        f.close()
-
-
-
-        """
 
 
 
