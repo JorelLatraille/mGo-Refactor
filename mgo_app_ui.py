@@ -19,9 +19,9 @@ MGO_PATH = os.path.expanduser("~") + '/Mari/mGo'
 ASSETS_PATH = MGO_PATH + '/Assets'
 PRESETS_PATH = MGO_PATH + '/Presets'
 CONFIG_PATH = MGO_PATH + '/mGo_config.txt'
-MAIN_UI = MGO_PATH + "/UIs/app_UI.ui"
-CLEANUP_UI = MGO_PATH + "/UIs/cleanup_UI.ui"
-ADD_IP_UI = MGO_PATH + "/UIs/ip_UI.ui"
+MAIN_UI = MGO_PATH + "/UIs/app_ui.ui"
+CLEANUP_UI = MGO_PATH + "/UIs/cleanup_ui.ui"
+ADD_IP_UI = MGO_PATH + "/UIs/ip_ui.ui"
 
 cleanup_UI = None
 add_ip_UI = None
