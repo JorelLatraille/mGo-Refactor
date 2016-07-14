@@ -2,7 +2,7 @@
 
 from PySide import QtCore, QtGui, QtUiTools
 import mari
-import mari.examples.mgo_main as mgo_main
+import mari.examples.mgo_utils as mgo_utils
 import os
 import hashlib
 import socket
@@ -27,7 +27,7 @@ class MgoUI(QtGui.QWidget):
     def __init__(self, ui_file):
         QtGui.QWidget.__init__(self)
         self.ui = ui_file
-        self.main = mgo_main.MgoMain()
+        self.utils = mgo_utils.MgoUtils()
         self.materialiser = mari.examples.mgo_materialiser_wip
         label = QtGui.QLabel()
         self.mGo_palette = mari.palettes.create("mGo", label)
@@ -100,7 +100,7 @@ class MgoUI(QtGui.QWidget):
             # the main export function... for each shader the shader data is returned and appended to 'mgo_data'
             mgo_data.append(self.mgo_export())
 
-        self.main.json_write(mgo_data, self.output_description_path)
+        self.utils.json_write(mgo_data, self.output_description_path)
         self.send_message_to_app()
 
     def mgo_export(self):
@@ -156,7 +156,7 @@ class MgoUI(QtGui.QWidget):
         mgo_file_path = (self.output_path + "/" + mari.projects.current().name() + " mGo/" +
                          self.geo.name() + "_" + shader_name + ".mgo").replace('\\', '/')
 
-        self.main.json_write(data, mgo_file_path)
+        self.utils.json_write(data, mgo_file_path)
 
         self.print_message("--- Data Successfully Exported ---")
         self.print_message(".mgo file saved in folder:")
