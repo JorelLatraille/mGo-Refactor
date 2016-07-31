@@ -2,13 +2,10 @@
 
 from PySide import QtCore, QtGui, QtUiTools
 import mari
-import mari.examples.mgo_utils as mgo_utils
 import os
 import hashlib
 import socket
-
-import mari.examples.mgo_materialiser_wip
-reload(mari.examples.mgo_materialiser_wip)
+import json
 
 ROOT_PATH = mari.resources.path(mari.resources.EXAMPLES)
 ICONS_PATH = mari.resources.path(mari.resources.ICONS)
@@ -27,10 +24,11 @@ class MgoUI(QtGui.QWidget):
     def __init__(self, ui_file):
         QtGui.QWidget.__init__(self)
         self.ui = ui_file
-        self.utils = mgo_utils.MgoUtils()
-        self.materialiser = mari.examples.mgo_materialiser_wip
+        self.utils = mari.examples.mgo_utils.MgoUtils()
+        self.ip = self.utils.get_ip_list()
+        self.materialiser = mari.examples.mgo_materialiser
         label = QtGui.QLabel()
-        self.mGo_palette = mari.palettes.create("mGo", label)
+        self.mGo_palette = mari.palettes.create("mGo " + str(self.ip[0]), label)
         self.mGo_palette.setBodyWidget(self.ui)
 
         self.output_path = None
@@ -39,6 +37,9 @@ class MgoUI(QtGui.QWidget):
         self.geo = None
         self.geo_name = None
         self.shader = None
+
+
+        print self.ip
 
         self.ui.mgo_icon.setPixmap(ICONS_PATH + '/mGo_green.png')
         self.ui.materialiser_btn.setIcon(QtGui.QPixmap(ICONS_PATH + '/shaderPresets.png'))
@@ -397,6 +398,66 @@ class MgoUI(QtGui.QWidget):
             data_type = 'int'
 
         return data_type
+
+
+
+
+def get_projects(config_path):
+    if os.path.isfile(config_path):
+        print "wow there's file"
+        with open(config_path, 'r') as filepath:
+            data = json.load(filepath)
+
+        mari_projects = []
+
+        try:
+            current_project = mari.projects.current().name()
+            data['_current project'] = current_project
+        except:
+            data['_current project'] = ""
+
+        for project in mari.projects.names():
+            mari_projects.append(project)
+
+        data['mari projects'] = mari_projects
+
+        with open(config_path, 'w') as outfile:
+            json.dump(data, outfile, sort_keys=True, indent=4, separators=(',', ': '))
+
+def import_hdri(project, image_path):
+    print "importing hdri"
+    print "image path!: " + str(image_path)
+    open_project = change_to_project(project)
+    if open_project:
+        environment_light = next(x for x in mari.lights.list() if x.isEnvironmentLight())
+        old_hdri = [i for i in mari.images.list() if i.filePath() == environment_light.cubeImageFilename()]
+
+        if old_hdri:
+            old_hdri.close()
+
+        environment_light.setCubeImage('%s' % image_path, environment_light.TYPE_GUESS)
+        environment_light.setCanvasDisplay(True)
+        environment_light.setIntensity(1)
+        environment_light.setRotationUp(270)
+
+def import_cameras(project, cameras_filepath, start_time, end_time):
+    open_project = change_to_project(project)
+    if open_project:
+        options = ["FrameOffset = 0", "StartFrame = %s" % start_time, "EndFrame = %s" % end_time]
+        mari.projectors.load(cameras_filepath, options)
+
+        # camerasToLoad = "/"+camera_names.rsplit("|", 1)[-1]
+
+def change_to_project(project):
+    if mari.projects.current() is not None:
+        if mari.projects.current().name() != project:
+            mari.projects.close()
+    try:
+        mari.projects.open(project)
+        return True
+    except:
+        print "ERROR - The project does not exist!"
+        return False
 
 
 def run():

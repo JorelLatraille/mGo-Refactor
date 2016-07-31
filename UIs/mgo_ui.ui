@@ -218,11 +218,6 @@ Env &amp; Cam - Exports Perspective Viewport Camera and Environment Light as an 
                     <string>All Objects</string>
                    </property>
                   </item>
-                  <item>
-                   <property name="text">
-                    <string>Env and Camera</string>
-                   </property>
-                  </item>
                  </widget>
                 </item>
                </layout>
@@ -310,7 +305,7 @@ Env &amp; Cam - Exports Perspective Viewport Camera and Environment Light as an 
          <widget class="QWidget" name="scrollAreaWidgetContents">
           <property name="geometry">
            <rect>
-            <x>-14</x>
+            <x>0</x>
             <y>0</y>
             <width>289</width>
             <height>516</height>

@@ -10,7 +10,7 @@ APP_CONFIG = MGO_PATH + '/mGo_config.txt'
 
 class MgoUtils(object):
     def __init__(self):
-        print "mgo main: ver.4"
+        print "mgo utils: ver.4"
 
     def init_app_config(self):
         print "initialising mgo config..."

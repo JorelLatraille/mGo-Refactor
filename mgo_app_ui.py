@@ -20,15 +20,15 @@ ASSETS_PATH = MGO_PATH + '/Assets'
 PRESETS_PATH = MGO_PATH + '/Presets'
 CONFIG_PATH = MGO_PATH + '/mGo_config.txt'
 MAIN_UI = MGO_PATH + "/UIs/app_ui.ui"
-CLEANUP_UI = MGO_PATH + "/UIs/cleanup_ui.ui"
-ADD_IP_UI = MGO_PATH + "/UIs/ip_ui.ui"
+CLEANUP_UI = MGO_PATH + "/UIs/cleanup_UI.ui"
+ADD_IP_UI = MGO_PATH + "/UIs/ip_UI.ui"
 
 cleanup_UI = None
 add_ip_UI = None
 
 def _get_app():
     exe_path = sys.executable.lower()
-    if 'maya' in exe_path: 
+    if 'maya' in exe_path:
         import mgo_maya
         return mgo_maya.MgoMaya()
 
@@ -76,6 +76,7 @@ class MgoAppUI(QtGui.QWidget):
     def setup_ui(self):
         self.ui.addHost_btn.setIcon(QtGui.QPixmap(self.icons_path + 'mGo_add.png'))
         self.ui.browseDir_btn.setIcon(QtGui.QPixmap(self.icons_path + 'mGo_browse.png'))
+        self.ui.refresh_btn.setIcon(QtGui.QPixmap(self.icons_path + 'mGo_refresh.png'))
         self.ui.setWindowFlags(QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint )
         self.ui.setFixedSize(self.ui.size())
         self.ui.setWindowTitle("mGo - " + str(self.ip[0]))
@@ -130,6 +131,7 @@ class MgoAppUI(QtGui.QWidget):
             self.mari = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.mari.connect((self.mari_host, 6100))
             self.mari.send('print "Establishing connection with mGo..."\x04')
+            self.mari.send('import mari.examples.mgo as mgo\x04')
 
         except socket.error:
             self.mari = None
@@ -148,7 +150,7 @@ class MgoAppUI(QtGui.QWidget):
         self.ui.projects_combo.clear()
 
         if self.mari:
-            self.mari.send('mari.examples.mgo_mari.get_projects("%s")\x04' % CONFIG_PATH)
+            self.mari.send('mgo.get_projects("%s")\x04' % CONFIG_PATH)
             self.mari_disconnect()
             import time; time.sleep(1)  # quick pause to allow writing of config file
 
@@ -216,12 +218,13 @@ class MgoAppUI(QtGui.QWidget):
         self.set_project()
 
     def send_geo(self):
+        print "sending geo..."
         is_animated = self.ui.geoAnim_chk.isChecked()
         tex_res = self.ui.chanRes_combo.currentText()
         subdivs = self.ui.subdivs_combo.currentText()
-        """
-        geo_object = self.app.GeoExport(self.project, self.assets_path, self.send_mode, tex_res, subdivs, is_animated)
-        """
+
+        self.app.GeoExport(self.project, self.assets_path, self.send_mode, tex_res, subdivs, is_animated)
+
 
     def send_geosend_geo(self, namespace, groups, filepath,):
         pass
@@ -245,12 +248,13 @@ class MgoAppUI(QtGui.QWidget):
             return
 
         hdri = self.app.HDRIRender(self.assets_path, self.project, self.send_mode, render_position)
-        image_path = hdri.image_path
+        image_path = hdri.final_path
 
         self.mari_connect()
 
         if self.mari:
-            self.mari.send('mari.examples.mgo_mari.import_hdri("%s", "%s")\x04' % (self.project, image_path))
+            #self.mari.send('import mari.examples.mgo as mgo\x04')
+            self.mari.send('mgo.import_hdri("%s", "%s")\x04' % (self.project, image_path))
             self.mari_disconnect()
             self.app.hover_message("HDRI sent to Mari")
 

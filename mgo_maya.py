@@ -119,6 +119,23 @@ class MgoMaya(object):
         def delete_old_shader_connections(self):
             pass
             """
+            allnodes = []
+            sgs = pm.ls(set=True, type='shadingEngine')
+            for s in sgs:
+                if "SHD" in s.name(): nodes = pm.listHistory(s.name(), f=0)
+            print nodes
+            for node in nodes:
+                nType = pm.nodeType(node)
+                if nType != "mesh": allnodes.append(node)
+            for node in allnodes: if
+            node != '_vray':
+            try:
+                pm.delete(node) except:
+                pass
+            run_kill_SHDs()
+
+            #
+
             try:
                 # get downnodes
                 downNodes = cmds.listHistory(matName)
@@ -246,12 +263,17 @@ class MgoMaya(object):
             self.is_animated = is_animated
             #self.send_shader = send_shader
             self.selected_geo = []
+            self.start_anim = 1
+            self.end_anim = 1
 
             self.export_geo_main()
 
         def export_geo_main(self):
-            """
-            print "self.send_mode"
+            geo_export_list = []
+            if self.is_animated:
+                self.start_anim = cmds.playbackOptions(query=True, minTime=True)
+                self.end_anim = cmds.playbackOptions(query=True, maxTime=True)
+
             self.selected_geo = cmds.ls(selection=True, typ='mesh', dag=True)
 
             if not self.selected_geo:
@@ -260,78 +282,87 @@ class MgoMaya(object):
                 return
 
             if self.send_mode == "new":
+                print "new"
                 if not os.path.exists(self.assets_path + "/" + self.project):
                     os.makedirs(self.assets_path + "/" + self.project)
 
-
-
-            #connect to Mari!?
-
-            # Initial the creation project in Mari.
-            if sendMode == 1:
-                mari.send(
-                    'mari.examples.mGo.importGEO("%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s")\x04' % (
-                        sendMode, projectName, "initialCreation", "initialCreation", setR, sd, isAnim, startAnim,
-                        endAnim,
-                        "initialCreation", "initialCreation", "initialCreation", "initialCreation", False))
-                mari.close()
-                sendMode = 2
-                mari = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                mari.connect((mariHost, 6100))
-
-            # update just the Shaders?
-            #work out if we just want to send the shaders... 'shadersOnly'
-
+                print self.assets_path + "/" + self.project
 
             for geo in self.selected_geo:
                 geo_transform = cmds.listRelatives(geo, parent=True)[0]  # will also serve as the geo name
-                namespace = geo.rsplit(":", 1)[0]
-                groups = ''
-                group_names = cmds.listRelatives(geo_transform, fullPath=True)[0].split("|")[0:-2]
-                if len(group_names) > 1:
-                    for group_name in group_names:
-                        groups += group_name.rsplit(":")[-1] + "|"
+                geo_export_list.append(geo_transform)
 
-                    # strip unnecessary '|' chars from the beginning and the end of the string
-                    groups = groups.strip("|")
+                abc_selection = '-root ' + ' -root '.join(geo_export_list)
 
-                if namespace == geo:
-                    namespace = None
+                print abc_selection
 
-                filename = ""
-                if namespace:
-                    filename = filename + namespace + "_"
-                if groups:
-                    filename = filename + groups.replace("|", "_") + "_"
+                geo_filename = self.assets_path + "/" + self.project + "/" + geo_transform + ".abc"
 
-                filename = filename + geo_transform + "_v0"
-                version = 1
-                filepath = self.assets_path + "/" + self.project + "/" + filename + str(version) + ".fbx"
+                print geo_filename
+                maya.mel.eval('AbcExport -j "-uvWrite -worldSpace %s -file %s";' % (abc_selection, geo_filename))
 
-                if self.send_mode == "version":
-                    while os.path.exists(filepath):
-                        version += 1
-                        filepath = self.assets_path + "/" + self.project + "/" + filename + str(version) + ".fbx"
+                #maya.mel.eval('AbcExport - j "-uvWrite -frameRange 1 120  -dataFormat ogawa -root |poo -file C:/Users/Computer-PC/Documents/Mari/mGo/Assets/new/poo.abc";
 
-                # get final obj version Name without namespaces and group names
-                filename = geo_transform + "_v0" + str(version)
-
-                # write out the file
-                cmds.select(geo)
-
-                maya.mel.eval('FBXExportFileVersion "FBX201200"')
-                maya.mel.eval('FBXExportInAscii -v true')
-                maya.mel.eval('FBXExportSmoothingGroups -v true')
-                maya.mel.eval('FBXExportQuickSelectSetAsCache -v "setName"')
-                maya.mel.eval('FBXExportAnimationOnly -v false')
-
-                maya.mel.eval(('FBXExport -f \"{}\" -s').format(filepath))
-
-                # other data gets written out here
-                geo_data = self.create_geo_data(geo, namespace, groups, filepath, filename, start_frame, end_frame)
+                # create version in a filename
                 """
 
+                geo_list = cmds.ls(selection=True, typ='transform', l= True)
+                b = ""
+                print geo_list
+
+                for g in geo_list:
+                    a = '-root ' + g + " "
+                    b = b + a
+                    #b.append(a)
+
+                print b
+
+                maya.mel.eval('file -force -options "v=0;" -typ "FBX export" -pr -es "C:/Users/Computer-PC/Documents/Mari/mGo/Assets/new/fbx6.fbx"')
+
+                start_anim = 1
+                end_anim = 1
+                filename = 'C:/Users/Computer-PC/Documents/Mari/mGo/Assets/new/bbb.abc'
+
+                maya.mel.eval('AbcExport - j "-uvWrite -worldSpace -frameRange %s %s  -dataFormat ogawa %s -file %s";' % (start_anim, end_anim, b, filename))
+
+                for geo in geo_list:
+                    print geo
+                    filename = 'C:/Users/Computer-PC/Documents/Mari/mGo/Assets/new/' + geo + ".abc"
+                    print filename
+                    maya.mel.eval('AbcExport - j "-uvWrite -worldSpace -frameRange %s %s  -dataFormat ogawa -root %s -file %s";' % (start_anim, end_anim, geo_list, filename))
+
+
+
+
+                for mesh in selectedMeshes:
+                    current_mesh = cmds.listRelatives(mesh, parent=True)[0]
+                    string $roots[] = `ls -assemblies`;
+                    geo_list.append(current_mesh)
+
+                    abc_selection = '-root ' + ' -root '.join(geo_list)
+                    print abc_selection
+                    myObjList.append(currentMesh)
+
+
+                #AbcExport -j "-frameRange 1 120 -uvWrite -dataFormat ogawa -root |poo -file C:/Users/Computer-PC/Documents/Mari/mGo/Assets/new/poo.abc";
+
+
+                maya.mel.eval('AbcExport - j "-uvWrite -frameRange %s %s  -dataFormat ogawa -root %s -file %s";' % (start_anim, end_anim, root, filename))
+
+
+                #maya.mel.eval('AbcExport -j "-uvWrite -worldSpace %s -file %s";' % (abc_selection, geo_filename))
+                                version = filepath.rsplit('_', 1)[1].split('.', 1)[0]
+
+                # create a new version number
+                up_take = int(version[1:]) + 1
+                to_string = str(up_take)
+                new_take = "v" + to_string.zfill(3)
+                filepath = filepath.rsplit('/', 1)[0]
+                """
+
+
         def create_geo_data(self, geo, namespace, groups, filepath, filename, start_frame, end_frame):
+            pass
             """
             data = {'geo': geo,
                     'sd level': self.subdivs,
@@ -487,9 +518,11 @@ class MgoMaya(object):
             self.render_camera = cmds.modelPanel("modelPanel4", query=True, camera=True)
             self.render_camera_xforms = cmds.xform(self.render_camera, q=True, ws=True, m=True)
 
+            self.final_path = None
+
             self.hdri_render_main()
             self.finalise_render()
-            self.image_path = self.prepare_image_path()
+            self.prepare_image_path()
 
         def hdri_render_main(self):
             if self.current_renderer not in self.accepted_renderers:
@@ -681,6 +714,7 @@ class MgoMaya(object):
             cmds.setAttr("%s.xformMatrix" % self.render_camera, self.render_camera_xforms, type="matrix")
 
         def prepare_image_path(self):
+            import shutil
             if not os.path.exists(self.assets_path + "/" + self.project):
                 os.makedirs(self.assets_path + "/" + self.project)
 
@@ -692,4 +726,11 @@ class MgoMaya(object):
                 else:
                     render_view = self.render_geo[0]
 
-            return self.assets_path + "/" + self.project + "/" + render_view + "_" + "hdri" + ".exr"
+
+            self.final_path = self.assets_path + "/" + self.project + "/" + render_view + "_" + "hdri" + ".exr"
+
+            print "copying image from: " + str(self.image_path)
+            print "to: " + str(self.final_path)
+
+            # copy HDRI to Mari Folder
+            shutil.copy(self.image_path, self.final_path)
